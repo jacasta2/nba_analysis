@@ -1,0 +1,9 @@
+pandas
+numpy==1.24
+nba_api
+matplotlib
+seaborn
+scikit-learn
+statsmodels
+shap
+dataframe_image
