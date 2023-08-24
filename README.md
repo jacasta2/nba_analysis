@@ -42,7 +42,7 @@ Once the games data was pulled, the next step was to pull the main stats of both
 </p>
 <p style="line-height:0.5" align="center"><b>Figure 2.</b> Nuggets' games data revised: 2016-17 to 2022-23.</p>
 
-Finally, I saved the data from games were both Jokic and Murray were starters.
+Finally, I saved the data from games where both Jokic and Murray were starters.
 
 At the end of the notebook, I provide functions that generalize the work. While they provide a great improvement, I believe they could be further improved, especially the functions that take care of pulling the players stats and appending them to the games data.
 
