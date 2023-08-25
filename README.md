@@ -80,7 +80,7 @@ This notebook fits a logistic regression model using data from all games. The an
         </td>
    </tr>
 </table>
-<p style="line-height:0.5" align="center"><b>Figure 4.</b> Regression coefficients (left) and SHAP values (right).</p>
+<p style="line-height:0.5" align="center"><b>Figure 4.</b> Standardized regression coefficients (left) and SHAP values (right).</p>
 
 Finally, I did use the results of the EDA: a correlation matrix suggests the points from Jokic and Murray teammates might be redundant, so I fit another model without this feature and compared both models using the Akaike Information Criterion (AIC). Comparing the AICs indicates the original model is preferred.
 
