@@ -171,4 +171,6 @@ cython_debug/
 /jokic_murray/nuggets_2016_17_2022_23_r2.csv
 /jokic_murray/nuggets_2016_17_2022_23_r3.csv
 /jokic_murray/nuggets_2016_17_2022_23.csv
+/src/metadata.json
+/src/.streamlit/secrets.toml
 /src/test.ipynb

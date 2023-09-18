@@ -60,7 +60,9 @@ def feature_view_connection() -> tuple[FeatureGroup, FeatureView]:
     my_config = Config()
     # my_config.update_attributes_env() # Use if working with metadata stored in env
     # variables
-    my_config.update_attributes_json()
+    # my_config.update_attributes_json() # Use if working with metadata stored in a
+    # json file
+    my_config.update_attributes_st()
 
     feature_store, feature_group = feature_group_connection(my_config)
     feature_view = feature_store.get_or_create_feature_view(
@@ -104,7 +106,9 @@ def first_feature_group_connection() -> FeatureGroup:
     my_config = Config()
     # my_config.update_attributes_env() # Use if working with metadata stored in env
     # variables
-    my_config.update_attributes_json()
+    # my_config.update_attributes_json() # Use if working with metadata stored in a
+    # json file
+    my_config.update_attributes_st()
 
     feature_store = feature_store_connection(my_config)
     feature_group = feature_store.get_or_create_feature_group(

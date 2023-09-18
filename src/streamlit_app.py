@@ -4,7 +4,6 @@ streamlit_app.py
 """
 
 import time
-import os
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -33,7 +32,6 @@ Jokic's points and rebounds, Murray's assists and rebounds and the points, rebou
 assists from the rest of their teammates, totaling 9 features. 
 """
 st.markdown(DESCRIPTION)
-st.text(os.getcwd())
 # Placeholder for informative messages
 status_message = st.empty()
 

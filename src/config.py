@@ -5,6 +5,7 @@ config.py
 
 import os
 import json
+import streamlit as st
 from dotenv import load_dotenv
 
 class Config:
@@ -24,8 +25,14 @@ class Config:
         Update instance attributes
         """
 
-        
-        dotenv_path = os.getcwd() + '/.env'
+        # Workaround I was trying to bypass the path issues in Streamlit
+        # dotenv_path = ''
+        # if 'DS_Projects' in os.getcwd():
+        #     dotenv_path += os.getcwd() + '/.env'
+        # else:
+        #     dotenv_path += os.getcwd() + '/src/.env'
+
+        dotenv_path = '.env'
         load_dotenv(dotenv_path = dotenv_path)
 
         self.hopsworks_project_name = os.environ.get('HOPSWORKS_PROJECT_NAME')
@@ -38,12 +45,15 @@ class Config:
         """
         Update instance attributes
         """
-        
-        json_file_path = ''
-        if 'DS_Projects' in os.getcwd():
-            json_file_path += os.getcwd() + '/metadata.json'
-        else:
-            json_file_path += os.getcwd() + '/src/metadata.json'
+
+        # Workaround I was trying to bypass the path issues in Streamlit
+        # json_file_path = ''
+        # if 'DS_Projects' in os.getcwd():
+        #     json_file_path += os.getcwd() + '/metadata.json'
+        # else:
+        #     json_file_path += os.getcwd() + '/src/metadata.json'
+
+        json_file_path = 'metadata.json'
 
         # Open and read the JSON file
         with open(json_file_path, 'r') as json_file:
@@ -54,3 +64,14 @@ class Config:
         self.hopsworks_api_key = data['HOPSWORKS_API_KEY']
         self.feature_group_name = data['FEATURE_GROUP_NAME']
         self.feature_view_name = data['FEATURE_VIEW_NAME']
+
+
+    def update_attributes_st(self) -> None:
+        """
+        Update instance attributes
+        """
+
+        self.hopsworks_project_name = st.secrets['HOPSWORKS_PROJECT_NAME']
+        self.hopsworks_api_key = st.secrets['HOPSWORKS_API_KEY']
+        self.feature_group_name = st.secrets['FEATURE_GROUP_NAME']
+        self.feature_view_name = st.secrets['FEATURE_VIEW_NAME']
