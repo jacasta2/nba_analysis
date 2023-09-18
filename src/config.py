@@ -38,8 +38,12 @@ class Config:
         """
         Update instance attributes
         """
-
-        json_file_path = os.getcwd() + '/metadata.json'
+        
+        json_file_path = ''
+        if 'DS_Projects' in os.getcwd():
+            json_file_path += os.getcwd() + '/metadata.json'
+        else:
+            json_file_path += os.getcwd() + '/src/metadata.json'
 
         # Open and read the JSON file
         with open(json_file_path, 'r') as json_file:
