@@ -24,7 +24,8 @@ class Config:
         Update instance attributes
         """
 
-        dotenv_path = '.env'
+        
+        dotenv_path = os.getcwd() + '/.env'
         load_dotenv(dotenv_path = dotenv_path)
 
         self.hopsworks_project_name = os.environ.get('HOPSWORKS_PROJECT_NAME')
@@ -38,7 +39,7 @@ class Config:
         Update instance attributes
         """
 
-        json_file_path = 'metadata.json'
+        json_file_path = os.getcwd() + '/metadata.json'
 
         # Open and read the JSON file
         with open(json_file_path, 'r') as json_file:
