@@ -20,8 +20,8 @@ def feature_store_connection(my_config: Config) -> FeatureStore:
     """
 
     project = hopsworks.login(
-        project=my_config.HOPSWORKS_PROJECT_NAME,
-        api_key_value=my_config.HOPSWORKS_API_KEY,
+        project=my_config.hopsworks_project_name,
+        api_key_value=my_config.hopsworks_api_key,
     )
     feature_store = project.get_feature_store()
     return feature_store
@@ -39,7 +39,7 @@ def feature_group_connection(my_config: Config) -> tuple[FeatureStore, FeatureGr
 
     feature_store = feature_store_connection(my_config)
     feature_group = feature_store.get_or_create_feature_group(
-        name=my_config.FEATURE_GROUP_NAME,
+        name=my_config.feature_group_name,
         version=1,
         description="Games data from Denver Nuggets",
         primary_key=["game_id"],
@@ -64,7 +64,7 @@ def feature_view_connection() -> tuple[FeatureGroup, FeatureView]:
 
     feature_store, feature_group = feature_group_connection(my_config)
     feature_view = feature_store.get_or_create_feature_view(
-        name=my_config.FEATURE_VIEW_NAME, version=1, query=feature_group.select_all()
+        name=my_config.feature_view_name, version=1, query=feature_group.select_all()
     )
     return feature_group, feature_view
 
@@ -108,7 +108,7 @@ def first_feature_group_connection() -> FeatureGroup:
 
     feature_store = feature_store_connection(my_config)
     feature_group = feature_store.get_or_create_feature_group(
-        name=my_config.FEATURE_GROUP_NAME,
+        name=my_config.feature_group_name,
         version=1,
         description="Games data from Denver Nuggets",
         primary_key=["game_id"],
