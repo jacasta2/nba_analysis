@@ -1,5 +1,6 @@
 pandas
 numpy==1.24
+nptyping
 nba_api
 matplotlib
 seaborn
@@ -7,3 +8,7 @@ scikit-learn
 statsmodels
 shap
 dataframe_image
+hopsworks
+ipywidgets
+streamlit
+python-dotenv

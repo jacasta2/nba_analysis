@@ -1,4 +1,5 @@
-mypy
-ruff
 black
+mypy
+pylint
+ruff
 ipykernel
