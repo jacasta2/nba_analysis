@@ -4,6 +4,7 @@ data.py
 """
 
 import time
+import os
 import pandas as pd
 import numpy as np
 from nba_api.stats.endpoints import leaguegamefinder, boxscoretraditionalv2
@@ -92,7 +93,15 @@ def append_players_stats_season(
     """
 
     # We load the nba_players info
-    nba_players = pd.read_csv("../data/nba_players.csv")
+    players_path = ""
+    # Path for local development
+    if "DS_Projects" in os.getcwd():
+        players_path += "../data/nba_players.csv"
+    # Path for streamlit deployment
+    else:
+        players_path += os.getcwd() + "/data/nba_players.csv"
+
+    nba_players = pd.read_csv(players_path)
 
     # We create a list to store DataFrames, each containing a player's main stats
     players_df_list = []
