@@ -380,8 +380,9 @@ def pull_data(
             feature_view=feature_view, game_id_list=game_id_list, columns=columns
         )
 
-        # Extract the seasons (e.g., 2016, 2017, etc.) from the pulled NBA data
-        list_1 = games["SEASON_ID"].str[1:].unique().tolist()
+        # Extract the seasons (e.g., 2016, 2017, etc.) from the seasons range
+        list_1 = list(range(season_init, season_end + 1, 1))
+        list_1 = [str(season) for season in list_1]
         # Extract the seasons (e.g., 2016, 2017, etc.) from the feature store data
         list_2 = feature_store_data["season_id"].str[1:].unique().tolist()
         # Extract number of seasons not in the feature store
@@ -394,8 +395,9 @@ def pull_data(
         # Get the feature group
         feature_group = first_feature_group_connection()
 
-        # Extract the seasons (e.g., 2016, 2017, etc.) from the pulled NBA data
-        list_1 = games["SEASON_ID"].str[1:].unique().tolist()
+        # Extract the seasons (e.g., 2016, 2017, etc.) from the seasons range
+        list_1 = list(range(season_init, season_end + 1, 1))
+        list_1 = [str(season) for season in list_1]
         seasons_not_in_feature_store = list_1
 
     # If there're seasons not in the feature store...
@@ -410,10 +412,12 @@ def pull_data(
         season_init_range = min(seasons_not_in_feature_store)
         season_end_range = max(seasons_not_in_feature_store)
 
+        # Pull games info
         games = games[
             (games["SEASON_ID"].str[1:] >= season_init_range)
             & (games["SEASON_ID"].str[1:] <= season_end_range)
         ].copy()
+        # Prepare games data
         games = append_players_stats(players_list=[203999, 1627750], team_games=games)
         games = teammates_stats(team_games=games)
         games = stats_to_int(team_games=games)

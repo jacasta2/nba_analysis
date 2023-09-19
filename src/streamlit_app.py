@@ -189,3 +189,17 @@ if st.sidebar.button("Run"):
                 " (z = " + str(diff_test[0]) + ", p = " + str(diff_test[1]) + ")."
             )
             container_4.col1.info(MESSAGE)
+
+            container_5 = st.container()
+            MESSAGE = """
+            Caution is advised when interpreting the results. Even if there's a
+            statistically significant difference between the standardized regression
+            coefficients, such difference could be due to a difference between these
+            features' standard deviations (if such difference exists). Moreover, while
+            one could take these features' SHAP values and run a comparison
+            test (e.g., a *t*-test), I don't know how statistically sound this is since
+            I don't know the statistical theoretical properties of SHAP values.
+            Nonetheless, this exercise can still provide an overall picture to
+            understand how different stats contribute to a Nuggets' win.     
+            """
+            container_5.warning(MESSAGE)

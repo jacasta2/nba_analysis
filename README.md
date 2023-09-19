@@ -1,12 +1,13 @@
 # Jokic's assists vs. Murray's points
 
-In this repo I provide Python notebooks to (i) extract games data for a given NBA team using the `nba_api` endpoints `leaguegamefinder` and `boxscoretraditionalv2`, (ii) perform a basic EDA and (iii) and fit a logistic regression model aimed at exploring the importance of Jokic's assists and Murray's points to determine whether the Denver Nuggets win a game.
+This repo provides the code of a Streamlit app that:
 
-The motivation for this work came to me while watching last season's (2022-2023) NBA finals between the Nuggets and the Miami Heat. I was watching the finals on ESPN when one of the commentators, the great Ernesto Jerez, asked what were the Nuggets missing more: Jokic's assists or Murray points. I don't recall what game was it nor the exact moment during the game when Ernesto raised this question, and it seems difficult to pinpoint it since the Nuggets were rarely trailing behind in the score during any of the finals games.
+1. Pulls games data of the Denver Nuggets from a `Hopsworks` feature store or the `nba_api`.
+2. Fits a logistic regression model and computes SHAP values aimed at exploring the importance of Jokic's assists and Murray's points to determine whether the Denver Nuggets win a game.
 
-At any rate, I found the question interesting and decided to do some data science work to find an answer. The work starts by pulling some relevant data, continues with a basic EDA and finishes with a modeling work, each of these performed in its own notebook.
+This update builds on a previous version that relied on notebooks to perform this work. The README of the previuos version can be found in the folder **jokic_murray**. Please refer to that README for details about that work.
 
-The analysis is based on all games from 2016-2017 to 2022-2023 without separating regular season and playoff games. A minor update could discriminate the analysis based on regular season and playoff games. Another future (and major) update could extend this work to analyze sets of players from different teams and update the results as data from new games become available.  
+The app is available at [nba-analysis-jaime.streamlit.app](https://nba-analysis-jaime.streamlit.app/). At the moment of deployment, the feature store has games data up to the 2019-20 season (from the 2016-17 season, where Jokic and Murray started playing together for the team). This amount of data allows to run the analysis. Please bear in mind this amount of data could change if an user pushes more data into the feature store or if I work in the app to upgrade it.
 
 ## Getting started
 
@@ -20,73 +21,92 @@ python -m pip install -r requirements.txt
 
 You can do the same with the file `dev-requirements.txt`. This file lists some linting and code formatting libraries that can be used with a source-code editor like VS Code.
 
-## Notebooks
+## Scripts
 
-The three notebooks and supporting files are in the folder **jokic_murray**.
+The app works with five Python scripts stored in the folder **src**.
 
-### etl
+### streamlit_app.py
 
-This notebook documents the work done to get familiarized with the API and pull the data to answer the research question.
-
-An important assumption of the work is that you must know the seasons during which the players of interest played together for a team. In this particular case, thanks to a Google search, I learned Jokic and Murray have been Nuggets teammates since the 2016-2017 season. Thus, I focused on pulling Nuggets' games data from the 2016-2017 to the 2022-2023 seasons. This was done using the endpoint `leaguegamefinder`. My initial approach, although worked, was far from polished. For example, I pulled games season by season, deleting summer league games season by season. Figure 1 below shows the tail of the DataFrame. Since the data is sorted in ascending order by the column `GAME_DATE`, the figure shows the Nuggets' data from the 2022-2023 NBA finals.
+This script contains the frontend code based on Streamlit. The landing interface looks like shown in Figure 1:
 
 <p style="line-height:0.5" align="center">
-    <img src="images/df1.png" />
+    <img src="images/app1.png" />
 </p>
-<p style="line-height:0.5" align="center"><b>Figure 1.</b> Nuggets' games data: 2016-17 to 2022-23.</p>
+<p style="line-height:0.5" align="center"><b>Figure 1.</b> Streamlit app landing interface.</p>
 
-Once the games data was pulled, the next step was to pull the main stats of both players (points, rebounds and assists and whether they were starters) for each of the games, compute those stats for the rest of the teammates combined and append these features to the games data. This was done using the endpoint `boxscoretraditionalv2` and additional data preparation work. These features look as shown by Figure 2 below.
+The user must select the range of seasons for the analysis using the sliders. Once the user hits **Get games**, the app checks whether the data is stored in the `Hopsworks` feature store that feeds the app. If all or some data isn't in the feature store, the app connects to the `nba_api` to pull this data, prepares it and updates the feature store.
+
+Once this work is done, the user can hit **Run analysis** so that the app runs the logistic regression and computes the SHAP values. This analysis requires at least 180 observations (i.e., games where both Jokic and Murray were starters). If this threshold isn't met, the app lets the user know about it and asks her to pull more data.
+
+The interface with the final results looks like shown in Figure 2:
 
 <p style="line-height:0.5" align="center">
-    <img src="images/df2.png" />
+    <img src="images/app2.png" />
 </p>
-<p style="line-height:0.5" align="center"><b>Figure 2.</b> Nuggets' games data revised: 2016-17 to 2022-23.</p>
+<p style="line-height:0.5" align="center"><b>Figure 2.</b> Streamlit app interface with analysis.</p>
 
-Finally, I saved the data from games where both Jokic and Murray were starters.
+### data.py
 
-At the end of the notebook, I provide functions that generalize the work. While they provide a great improvement, I believe they could be further improved, especially the functions that take care of pulling the players stats and appending them to the games data.
+This script contains the code that pulls and prepares games data from the `nba_api` and pushes this data into the `Hopsworks` feature store.
 
-From the different CSV files that are generated throughout the notebook, I only provide the one generated at the end of Section 2.3 (**nuggets_2016_17_2022_23_j_m.csv**), which is the one used in the EDA. Please follow the notebook to check the work and generate the rest of the files.
+When the user hits **Get games**, the app first connects to the `nba_api` to pull the basic games data from the selected seasons. It then connects to the `Hopsworks` feature store and checks whether all requested data is stored there. This is done by checking the game ids pulled from the `nba_api` against the game ids pulled from the feature store.[^2] If not all requested data is in the feature store, the app extracts the lacking games data from the games data pulled from the `nba_api`, prepares it and updates the feature store. Otherwise, it let the user knows that all requested data is in the feature store.
 
-### eda
+[^2]: Ideally, the app should check whether all requested data is in the feature store by connecting solely to the feature store. However, my current understanding of how `Hopsworks` works led me to the solution currently implemented. It's my understanding that I need game ids (or whatever feature(s) I define as primary key when pushing data into the feature store) to retrieve data from the feature store. Thus, I pull game ids from the `nba_api` and then use them to retrieve data from the feature store. A future update should look into this issue so that the app connects to the `nba_api` only when there's lacking data in the feature store.
 
-This is largerly a notebook with a graphical analysis with no insights derived from it (my bad, apologies). Here, I take two plots from the EDA to get a sense of how the probability of the Nuggets winning a game increases with Jokic's assists and Murray's points. Figure 3 below shows the plots. Each plot discretizes the feature of interest in five bins and plots the probability of winning in each bin. While the probability of winning increases with both Jokic's assists and Murray's points, it's difficult to pinpoint which one has a stronger effect based solely on these two plots.  
+When all this process finishes, a message shown in the interface lets the user know how many observations were pulled from (i) the `Hopsworks` feature store and (ii) the `nba_api`.
 
-<table>
-    <tr>
-        <td>
-            <img src="images/eda1.png" />
-        </td>
-        <td>
-            <img src="images/eda2.png" />
-        </td>
-   </tr>
-</table>
-<p style="line-height:0.5" align="center"><b>Figure 3.</b> Jokic's assits (left) and Murray's points (right) influence on winning probability.</p>
+### feature_store.py
 
-At the end of the notebook, I save the following data for later use in the modeling work: points, rebounds and assists from Jokic, Murray and the rest of their teammates combined for each game where both Jokic and Murray were starters, plus two dummies that capture whether the game was a win and whether it was a playoff game. The data is saved in the CSV file **model_data.csv**.
+This script contains supporting functions used by `data.py` to connect to the `Hopsworks` feature store and retrieve games data stored in it.
 
-### modeling
+### config.py
 
-This notebook fits a logistic regression model using data from all games. The analysis focuses on fitting the model with unstandardized and standardized coefficients and computing the SHAP values of the standardized model. Figure 4 below plots the results from the standardized logistic regression and the SHAP analysis. While both the standardized model and the SHAP values suggest Murray's points are more important than Jokic's assists to determine whether the Nuggets win a game, the evidence isn't bulletproof: the difference between the standardized coefficients is marginal at best and, to the best of my knowledge, we cannot statistically compare the SHAP values to make a stronger point.
+This script contains code that loads supporting credential data used by `feature_store.py` to connect to the `Hopsworks` feature store. While the script provides three different ways to load such data, the app only uses the one that relies on Streamlit Secrets Management (SSM). However, I leave all three for the sake of completeness and learning.
 
-<table>
-    <tr>
-        <td>
-            <img src="images/modeling1.png" />
-        </td>
-        <td>
-            <img src="images/modeling2.png" />
-        </td>
-   </tr>
-</table>
-<p style="line-height:0.5" align="center"><b>Figure 4.</b> Standardized regression coefficients (left) and SHAP values (right).</p>
+When using SSM, you need to create (i) a folder named `.streamlit` in the folder **src** and (ii) a file inside `.streamlit` named `secrets.toml` with the following data:[^3]
 
-Finally, I did use the results of the EDA: a correlation matrix suggests the points from Jokic and Murray teammates might be redundant, so I fit another model without this feature and compared both models using the Akaike Information Criterion (AIC). Comparing the AICs indicates the original model is preferred.
+```toml
+HOPSWORKS_PROJECT_NAME = "HOPSWORKS_PROJECT_NAME"
+HOPSWORKS_API_KEY = "HOPSWORKS_API_KEY"
+FEATURE_GROUP_NAME = "FEATURE_GROUP_NAME"
+FEATURE_VIEW_NAME = "FEATURE_VIEW_NAME"
+```
+
+[^3]: When implementing your own app, please make sure to replace the placeholders accordingly. This also applies for the other two ways of loading the supporting credential data.
+
+This file is used during local development. When deploying the app, you need to define these variables as environment variables in your app's **Advanced settings...** Please check [SSM's documentation](https://docs.streamlit.io/streamlit-community-cloud/deploy-your-app/secrets-management) for an overview.
+
+If you want to load the data using environment variables, you need to create the file `.env` in the folder **src** with the following data:
+
+```sh
+HOPSWORKS_PROJECT_NAME=HOPSWORKS_PROJECT_NAME
+HOPSWORKS_API_KEY=HOPSWORKS_API_KEY
+FEATURE_GROUP_NAME=FEATURE_GROUP_NAME
+FEATURE_VIEW_NAME=FEATURE_VIEW_NAME
+```
+
+If you want to load the data using a json file, you need to create the file `metadata.json` in the folder **src** with the following data:
+
+```json
+{
+"HOPSWORKS_PROJECT_NAME": "HOPSWORKS_PROJECT_NAME",
+"HOPSWORKS_API_KEY": "HOPSWORKS_API_KEY",
+"FEATURE_GROUP_NAME": "FEATURE_GROUP_NAME",
+"FEATURE_VIEW_NAME": "FEATURE_VIEW_NAME"
+}
+```
+
+Regardless of the way of loading the supporting credential data, please bear in mind it's considered bad practice to store unencrypted credential data in a git repository. SSM allows to bypass this issue.
+
+### modeling.py
+
+This script contains the code that fits the logistic regression model to the games data and computes the SHAP values.
 
 ## Credits
 
 This project was motivated by a question raised by the great Ernesto Jerez during the transmission of the 2022-2023 NBA finals between the Denver Nuggets and the Miami Heat and my interest in data science.
+
+The idea of deploying the app and using a feature store was motivated by reading [Pau Labarta Bajo's blog](https://datamachines.xyz/). The script `feature_store.py` builds heavily on his implementation in [Build and deploy a real-time feature pipeline with Python](https://github.com/Paulescu/build-and-deploy-real-time-feature-pipeline/).
 
 I highly appreciate feedback and you can reach out to me on [LinkedIn](https://bit.ly/jaime-linkedin) any time. I'm also working on other projects. Check this out in my [personal website](https://bit.ly/jaime-website).
 
