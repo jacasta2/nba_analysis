@@ -31,14 +31,14 @@ This notebook documents the work done to get familiarized with the API and pull 
 An important assumption of the work is that you must know the seasons during which the players of interest played together for a team. In this particular case, thanks to a Google search, I learned Jokic and Murray have been Nuggets teammates since the 2016-2017 season. Thus, I focused on pulling Nuggets' games data from the 2016-2017 to the 2022-2023 seasons. This was done using the endpoint `leaguegamefinder`. My initial approach, although worked, was far from polished. For example, I pulled games season by season, deleting summer league games season by season. Figure 1 below shows the tail of the DataFrame. Since the data is sorted in ascending order by the column `GAME_DATE`, the figure shows the Nuggets' data from the 2022-2023 NBA finals.
 
 <p style="line-height:0.5" align="center">
-    <img src="images/df1.png" />
+    <img src="../images/df1.png" />
 </p>
 <p style="line-height:0.5" align="center"><b>Figure 1.</b> Nuggets' games data: 2016-17 to 2022-23.</p>
 
 Once the games data was pulled, the next step was to pull the main stats of both players (points, rebounds and assists and whether they were starters) for each of the games, compute those stats for the rest of the teammates combined and append these features to the games data. This was done using the endpoint `boxscoretraditionalv2` and additional data preparation work. These features look as shown by Figure 2 below.
 
 <p style="line-height:0.5" align="center">
-    <img src="images/df2.png" />
+    <img src="../images/df2.png" />
 </p>
 <p style="line-height:0.5" align="center"><b>Figure 2.</b> Nuggets' games data revised: 2016-17 to 2022-23.</p>
 
@@ -55,10 +55,10 @@ This is largerly a notebook with a graphical analysis with no insights derived f
 <table>
     <tr>
         <td>
-            <img src="images/eda1.png" />
+            <img src="../images/eda1.png" />
         </td>
         <td>
-            <img src="images/eda2.png" />
+            <img src="../images/eda2.png" />
         </td>
    </tr>
 </table>
@@ -73,10 +73,10 @@ This notebook fits a logistic regression model using data from all games. The an
 <table>
     <tr>
         <td>
-            <img src="images/modeling1.png" />
+            <img src="../images/modeling1.png" />
         </td>
         <td>
-            <img src="images/modeling2.png" />
+            <img src="../images/modeling2.png" />
         </td>
    </tr>
 </table>
