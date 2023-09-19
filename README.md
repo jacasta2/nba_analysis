@@ -1,4 +1,4 @@
-# Jokic's assists vs. Murray's points
+# Jokic's assists and Murray's points: what do the Denver Nuggets miss more?
 
 This repo provides the code of a Streamlit app that:
 

@@ -1,4 +1,4 @@
-# Jokic's assists vs. Murray's points
+# Jokic's assists and Murray's points: what do the Denver Nuggets miss more?
 
 In this repo I provide Python notebooks to (i) extract games data for a given NBA team using the `nba_api` endpoints `leaguegamefinder` and `boxscoretraditionalv2`, (ii) perform a basic EDA and (iii) and fit a logistic regression model aimed at exploring the importance of Jokic's assists and Murray's points to determine whether the Denver Nuggets win a game.
 
