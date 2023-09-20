@@ -7,7 +7,7 @@ This repo provides the code of a Streamlit app that:
 
 This update builds on a previous version that relied on notebooks to perform this work. The README of the previuos version can be found in the folder **jokic_murray**. Please refer to that README for details about that work.
 
-The app is available at [nba-analysis-jaime.streamlit.app](https://nba-analysis-jaime.streamlit.app/). At the moment of deployment, the feature store has games data up to the 2019-20 season (from the 2016-17 season, where Jokic and Murray started playing together for the team). This amount of data allows to run the analysis. Please bear in mind this amount of data could change if an user pushes more data into the feature store or if I work in the app to upgrade it.
+The app is available at [nba-analysis-jaime.streamlit.app](https://nba-analysis-jaime.streamlit.app/). At the moment of deployment, the feature store has games data up to the 2019-20 season (from the 2016-17 season, where Jokic and Murray started playing together for the team). This amount of data allows to run the analysis. Please bear in mind this amount of data could change if an user pushes more data into the feature store or if I work in the app to update it.
 
 ## Getting started
 
@@ -49,9 +49,11 @@ The interface with the final results looks like shown in Figure 2:
 
 This script contains the code that pulls and prepares games data from the `nba_api` and pushes this data into the `Hopsworks` feature store.
 
-When the user hits **Get games**, the app first connects to the `nba_api` to pull the basic games data from the selected seasons. It then connects to the `Hopsworks` feature store and checks whether all requested data is stored there. This is done by checking the game ids pulled from the `nba_api` against the game ids pulled from the feature store.[^2] If not all requested data is in the feature store, the app extracts the lacking games data from the games data pulled from the `nba_api`, prepares it and updates the feature store. Otherwise, it let the user knows that all requested data is in the feature store.
+In a previous version of the app, when the user hit **Get games**, the app first connected to the `nba_api` to pull the basic games data from the selected seasons and then connected to the `Hopsworks` feature store to check whether all requested data was stored there (this was done by checking the game ids pulled from the `nba_api` against the game ids pulled from the feature store and was motivated by my understanding at the time of how `Hopsworks` worked).[^2]
 
-[^2]: Ideally, the app should check whether all requested data is in the feature store by connecting solely to the feature store. However, my current understanding of how `Hopsworks` works led me to the solution currently implemented. It's my understanding that I need game ids (or whatever feature(s) I define as primary key when pushing data into the feature store) to retrieve data from the feature store. Thus, I pull game ids from the `nba_api` and then use them to retrieve data from the feature store. A future update should look into this issue so that the app connects to the `nba_api` only when there's lacking data in the feature store.
+Currently, when the user hits **Get games**, the app connects to the `Hopsworks` feature store to check whether all requested data is stored there. If it isn't, the app connects to the `nba_api` to pull the lacking games data, prepares it and updates the feature store. Otherwise, the app lets the user know that all requested data is in the feature store.
+
+[^2]: I thought I needed game ids (or whatever feature(s) I defined as primary key when creating a feature group) to retrieve data from the feature store. Thus, I used to pull game ids from the `nba_api` and then used them to retrieve data from the feature store. While this works, the class `FeatureGroup` offers a simpler way to extract all data from the feature store through its function `read`.
 
 When all this process finishes, a message shown in the interface lets the user know how many observations were pulled from (i) the `Hopsworks` feature store and (ii) the `nba_api`.
 
@@ -106,7 +108,7 @@ This script contains the code that fits the logistic regression model to the gam
 
 This project was motivated by a question raised by the great Ernesto Jerez during the transmission of the 2022-2023 NBA finals between the Denver Nuggets and the Miami Heat and my interest in data science.
 
-The idea of deploying the app and using a feature store was motivated by reading [Pau Labarta Bajo's blog](https://datamachines.xyz/). The script `feature_store.py` builds heavily on his implementation in [Build and deploy a real-time feature pipeline with Python](https://github.com/Paulescu/build-and-deploy-real-time-feature-pipeline/).
+The idea of deploying the app and using a feature store was motivated by reading [Pau Labarta Bajo's blog](https://datamachines.xyz/). The script `feature_store.py` builds on his implementation in [Build and deploy a real-time feature pipeline with Python](https://github.com/Paulescu/build-and-deploy-real-time-feature-pipeline/).
 
 I highly appreciate feedback and you can reach out to me on [LinkedIn](https://bit.ly/jaime-linkedin) any time. I'm also working on other projects. Check this out in my [personal website](https://bit.ly/jaime-website).
 

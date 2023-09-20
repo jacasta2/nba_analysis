@@ -8,11 +8,13 @@ import os
 import pandas as pd
 import numpy as np
 from nba_api.stats.endpoints import leaguegamefinder, boxscoretraditionalv2
-from feature_store import (
-    feature_view_connection,
-    get_feature_store_data,
-    first_feature_group_connection,
-)
+import hsfs
+# from feature_store import (
+#     feature_view_connection,
+#     get_feature_store_data,
+#     first_feature_group_connection,
+# )
+from feature_store import feature_group_connection_r1, get_feature_store_data_r1
 
 
 def pull_team_games(team_id: int, season_init: int, season_end: int) -> pd.DataFrame:
@@ -148,9 +150,8 @@ def append_players_stats_season(
                 # The 'START_POSITION' of non-starters is an empty string
                 starter = (
                     1
-                    if players_stats.loc[
-                        player_condition,
-                        "START_POSITION"].values[0] != ""
+                    if players_stats.loc[player_condition, "START_POSITION"].values[0]
+                    != ""
                     else 0
                 )
                 # We pull the player's stats
@@ -342,62 +343,71 @@ def pull_data(
         int with the number of rows from data pulled from the nba_api.
     """
 
-    # Pull games info
-    games = pull_team_games(
-        team_id=team_id, season_init=season_init, season_end=season_end
-    )
+    ### An update that simplifies reading from the feature store makes this commented
+    ### code unnecesary. I leave it commented for the sake of learning
+    # # Pull games info
+    # games = pull_team_games(
+    #     team_id=team_id, season_init=season_init, season_end=season_end
+    # )
 
-    # Extract the game ids to check against the info stored in the feature store
-    game_id_list = games["GAME_ID"].to_list()
+    # # Extract the game ids to check against the info stored in the feature store
+    # game_id_list = games["GAME_ID"].to_list()
 
-    # Columns in the feature store
-    columns = [
-        "jokic_pts",
-        "jokic_reb",
-        "jokic_ast",
-        "jokic_starter",
-        "murray_pts",
-        "murray_reb",
-        "murray_ast",
-        "murray_starter",
-        "rest_pts",
-        "rest_reb",
-        "rest_ast",
-        "game_id",
-        "game_date",
-        "season_id",
-        "playoffs",
-        "win",
-    ]
+    # # Columns in the feature store
+    # columns = [
+    #     "jokic_pts",
+    #     "jokic_reb",
+    #     "jokic_ast",
+    #     "jokic_starter",
+    #     "murray_pts",
+    #     "murray_reb",
+    #     "murray_ast",
+    #     "murray_starter",
+    #     "rest_pts",
+    #     "rest_reb",
+    #     "rest_ast",
+    #     "game_id",
+    #     "game_date",
+    #     "season_id",
+    #     "playoffs",
+    #     "win",
+    # ]
 
-    # try-except to handle the first time data is inserted into the feature store
+    # Extract the seasons (e.g., 2016, 2017, etc.) from the seasons range
+    list_1 = list(range(season_init, season_end + 1, 1))
+    list_1 = [str(season) for season in list_1]
+
+    ### This reflects the update mentioned above
+    # Get the feature group
+    feature_group = feature_group_connection_r1()
+
+    # try-except to handle the first time data is inserted into the feature store. This
+    # is hanlded within the except
     except_code = 0
     try:
+        ### This reflects the update mentioned above
         # Get the feature view
-        feature_group, feature_view = feature_view_connection()
-        # Get the data in the feature store
-        feature_store_data = get_feature_store_data(
-            feature_view=feature_view, game_id_list=game_id_list, columns=columns
-        )
+        # feature_group, feature_view = feature_view_connection()
 
-        # Extract the seasons (e.g., 2016, 2017, etc.) from the seasons range
-        list_1 = list(range(season_init, season_end + 1, 1))
-        list_1 = [str(season) for season in list_1]
+        # Get the data in the feature store
+        # feature_store_data = get_feature_store_data(
+        #     feature_view=feature_view, game_id_list=game_id_list, columns=columns
+        # )
+        feature_store_data = get_feature_store_data_r1(feature_group=feature_group)
+
         # Extract the seasons (e.g., 2016, 2017, etc.) from the feature store data
         list_2 = feature_store_data["season_id"].str[1:].unique().tolist()
         # Extract number of seasons not in the feature store
         seasons_not_in_feature_store = [
             element for element in list_1 if element not in list_2
         ]
-    except:
+    except hsfs.client.exceptions.RestAPIError:
         except_code += 1
 
+        ### This reflects the update mentioned above
         # Get the feature group
-        feature_group = first_feature_group_connection()
+        # feature_group = first_feature_group_connection()
 
-        # Extract the seasons (e.g., 2016, 2017, etc.) from the seasons range
-        list_1 = list(range(season_init, season_end + 1, 1))
-        list_1 = [str(season) for season in list_1]
         seasons_not_in_feature_store = list_1
 
     # If there're seasons not in the feature store...
@@ -409,14 +419,21 @@ def pull_data(
         message += "Pulling and preparing the data..."
         status_message.text(message)
 
-        season_init_range = min(seasons_not_in_feature_store)
-        season_end_range = max(seasons_not_in_feature_store)
+        ### This reflects the update mentioned above
+        # season_init_range = min(seasons_not_in_feature_store)
+        # season_end_range = max(seasons_not_in_feature_store)
+        season_init_range = int(min(seasons_not_in_feature_store))
+        season_end_range = int(max(seasons_not_in_feature_store))
 
+        ### This reflects the update mentioned above
         # Pull games info
-        games = games[
-            (games["SEASON_ID"].str[1:] >= season_init_range)
-            & (games["SEASON_ID"].str[1:] <= season_end_range)
-        ].copy()
+        # games = games[
+        #     (games["SEASON_ID"].str[1:] >= season_init_range)
+        #     & (games["SEASON_ID"].str[1:] <= season_end_range)
+        # ].copy()
+        games = pull_team_games(
+            team_id=team_id, season_init=season_init_range, season_end=season_end_range
+        )
         # Prepare games data
         games = append_players_stats(players_list=[203999, 1627750], team_games=games)
         games = teammates_stats(team_games=games)
@@ -428,6 +445,7 @@ def pull_data(
         status_message.text(message)
         time.sleep(2)
 
+        # Update feature store
         feature_group.insert(games, write_options={"start_offline_backfill": False})
         status_message.text("Feature store updated!")
         time.sleep(2)
@@ -435,7 +453,7 @@ def pull_data(
         rows_nba = games.shape[0]
 
         # if-then-else added to handle the first time data is inserted into the feature
-        # store
+        # store. This is handled within the else
         if except_code == 0:
             rows_fs = feature_store_data.shape[0]
 

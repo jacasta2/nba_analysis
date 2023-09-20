@@ -30,7 +30,9 @@ def feature_store_connection(my_config: Config) -> FeatureStore:
 def feature_group_connection(my_config: Config) -> tuple[FeatureStore, FeatureGroup]:
     """
     Connects to the feature store and returns a pointer to the feature store and feature
-    group.
+    group. An update that simplifies reading from the feature store makes this function
+    unnecessary. I replace it with the function feature_group_connection_r1 below. I
+    leave this function for the sake of learning.
 
     Returns:
         feature_store: FeatureStore pointer to the feature store.
@@ -50,7 +52,10 @@ def feature_group_connection(my_config: Config) -> tuple[FeatureStore, FeatureGr
 
 def feature_view_connection() -> tuple[FeatureGroup, FeatureView]:
     """
-    Connects to the feature group and returns a pointer to the feature view.
+    Connects to the feature group and returns a pointer to the feature view. An update
+    that simplifies reading from the feature store makes this function unnecessary. I
+    replace it with the function feature_group_connection_r1 below. I leave this
+    function for the sake of learning.
 
     Returns:
         feature_group: FeatureGroup pointer to the feature group.
@@ -75,7 +80,9 @@ def get_feature_store_data(
     feature_view: FeatureView, game_id_list: list, columns: list
 ) -> pd.DataFrame:
     """
-    Pulls data from the feature store.
+    Pulls data from the feature store. An update that simplifies reading from the
+    feature store makes this function unnecessary. I replace it with the function
+    get_feature_store_data_r1 below. I leave this function for the sake of learning.
 
     Args:
         feature_view: FeatureView used to pull the data.
@@ -97,7 +104,10 @@ def get_feature_store_data(
 def first_feature_group_connection() -> FeatureGroup:
     """
     Connects to the feature store and returns a pointer to the feature group the first
-    time data is going to be inserted into the feature store.
+    time data is going to be inserted into the feature store. An update that simplifies
+    reading from the feature store makes this function unnecessary. I replace it with
+    the function feature_group_connection_r1 below. I leave this function for the sake
+    of learning.
 
     Returns:
         feature_group: FeatureGroup pointer to the feature group.
@@ -108,6 +118,45 @@ def first_feature_group_connection() -> FeatureGroup:
     # variables
     # my_config.update_attributes_json() # Use if working with metadata stored in a
     # json file
+    my_config.update_attributes_st()
+
+    feature_store = feature_store_connection(my_config)
+    feature_group = feature_store.get_or_create_feature_group(
+        name=my_config.feature_group_name,
+        version=1,
+        description="Games data from Denver Nuggets",
+        primary_key=["game_id"],
+        online_enabled=True,
+    )
+    return feature_group
+
+
+def get_feature_store_data_r1(feature_group: FeatureGroup) -> pd.DataFrame:
+    """
+    Pulls data from the feature store.
+
+    Args:
+        feature_group: FeatureGroup used to pull the data.
+
+    Returns:
+        dataframe: pd.DataFrame with data pulled from the feature store.
+    """
+
+    dataframe = feature_group.read(online=True)
+    dataframe.sort_values(by="game_date", ascending=True, inplace=True)
+    dataframe.reset_index(drop=True, inplace=True)
+    return dataframe
+
+
+def feature_group_connection_r1() -> FeatureGroup:
+    """
+    Connects to the feature store and returns a pointer to the feature group.
+
+    Returns:
+        feature_group: FeatureGroup pointer to the feature group.
+    """
+
+    my_config = Config()
     my_config.update_attributes_st()
 
     feature_store = feature_store_connection(my_config)
