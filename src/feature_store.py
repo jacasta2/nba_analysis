@@ -131,20 +131,36 @@ def first_feature_group_connection() -> FeatureGroup:
     return feature_group
 
 
-def get_feature_store_data_r1(feature_group: FeatureGroup) -> pd.DataFrame:
+def get_feature_store_data_r1(
+    feature_group: FeatureGroup, season_init: int, season_end: int
+) -> pd.DataFrame:
     """
     Pulls data from the feature store.
 
     Args:
         feature_group: FeatureGroup used to pull the data.
+        season_init: int that contains the starting season from which the games info
+            will be pulled.
+        season_end: int that contains the ending season from which the games info will
+            be pulled.
 
     Returns:
         dataframe: pd.DataFrame with data pulled from the feature store.
     """
 
+    # Pull data from feature store
     dataframe = feature_group.read(online=True)
+
+    # Filter data according to selected seasons range
+    dataframe = dataframe[
+        (dataframe["season_id"].str[1:] >= str(season_init))
+        & (dataframe["season_id"].str[1:] <= str(season_end))
+    ].copy()
+
+    # Some processing
     dataframe.sort_values(by="game_date", ascending=True, inplace=True)
     dataframe.reset_index(drop=True, inplace=True)
+
     return dataframe
 
 

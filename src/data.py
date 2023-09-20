@@ -393,7 +393,11 @@ def pull_data(
         # feature_store_data = get_feature_store_data(
         #     feature_view=feature_view, game_id_list=game_id_list, columns=columns
         # )
-        feature_store_data = get_feature_store_data_r1(feature_group=feature_group)
+        feature_store_data = get_feature_store_data_r1(
+            feature_group=feature_group,
+            season_init=season_init,
+            season_end=season_end
+        )
 
         # Extract the seasons (e.g., 2016, 2017, etc.) from the feature store data
         list_2 = feature_store_data["season_id"].str[1:].unique().tolist()
