@@ -2,7 +2,7 @@
 
 This repo provides the code of a Streamlit app that:
 
-1. Pulls games data of the Denver Nuggets from a `Hopsworks` feature store or the `nba_api`.
+1. Pulls games data of the Denver Nuggets from a `Hopsworks` feature store or the [nba_api](https://github.com/swar/nba_api).
 2. Fits a logistic regression model and computes SHAP values aimed at exploring the importance of Jokic's assists and Murray's points to determine whether the Denver Nuggets win a game.
 
 This update builds on a previous version that relied on notebooks to perform this work. The README of the previuos version can be found in the folder **jokic_murray**. Please refer to that README for details about that work.
