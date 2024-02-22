@@ -260,7 +260,6 @@ def fetch_recent_games() -> None:
     new_data_regular_season = leaguegamefinder.LeagueGameFinder(
         team_id_nullable=1610612743,
         date_from_nullable=date_from,
-        date_to_nullable="01/31/2024",  # Testing
         season_type_nullable="Regular Season",
     ).get_data_frames()[0]
 
