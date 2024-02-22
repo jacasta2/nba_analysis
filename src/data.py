@@ -3,18 +3,18 @@ data.py
     This script contains all supporting functions to pull NBA data.
 """
 
-import time
 import os
-import pandas as pd
-import numpy as np
-from nba_api.stats.endpoints import leaguegamefinder, boxscoretraditionalv2
+import time
 import hsfs
+import numpy as np
+import pandas as pd
+from nba_api.stats.endpoints import boxscoretraditionalv2, leaguegamefinder
+from feature_store import feature_group_connection_r1, get_feature_store_data_r1
 # from feature_store import (
 #     feature_view_connection,
 #     get_feature_store_data,
 #     first_feature_group_connection,
 # )
-from feature_store import feature_group_connection_r1, get_feature_store_data_r1
 
 
 def pull_team_games(team_id: int, season_init: int, season_end: int) -> pd.DataFrame:

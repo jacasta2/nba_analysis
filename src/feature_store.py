@@ -3,12 +3,13 @@ feature_store.py
     This script contains all supporting functions to connect to Hopsworks.
 """
 
-import pandas as pd
-from hsfs.feature_store import FeatureStore
-from hsfs.feature_group import FeatureGroup
-from hsfs.feature_view import FeatureView
 import hopsworks
+import pandas as pd
+from hsfs.feature_group import FeatureGroup
+from hsfs.feature_store import FeatureStore
+from hsfs.feature_view import FeatureView
 from config import Config
+from utils import add_one_day
 
 
 def feature_store_connection(my_config: Config) -> FeatureStore:
@@ -176,6 +177,7 @@ def feature_group_connection_r1() -> FeatureGroup:
     my_config.update_attributes_st()
 
     feature_store = feature_store_connection(my_config)
+
     feature_group = feature_store.get_or_create_feature_group(
         name=my_config.feature_group_name,
         version=1,
@@ -183,4 +185,64 @@ def feature_group_connection_r1() -> FeatureGroup:
         primary_key=["game_id"],
         online_enabled=True,
     )
+
     return feature_group
+
+
+def feature_group_connection_r2(params_list: list) -> FeatureGroup:
+    """
+    Connects to the feature store and returns a pointer to the feature group. This
+    connection is used to fetch recent games data and push it into the feature store
+    using GitHub actions.
+
+    Args:
+        params_list: list that contains the parameters needed to connect to the feature
+        store (Hopsworks API key, project name and feature group name).
+
+    Returns:
+        feature_group: FeatureGroup pointer to the feature group.
+    """
+
+    project = hopsworks.login(
+        project=params_list[1],
+        api_key_value=params_list[0],
+    )
+
+    feature_store = project.get_feature_store()
+
+    feature_group = feature_store.get_or_create_feature_group(
+        name=params_list[2],
+        version=1,
+        description="Games data from Denver Nuggets",
+        primary_key=["game_id"],
+        online_enabled=True,
+    )
+
+    return feature_group
+
+
+def get_date_most_recent_game_fs(feature_group: FeatureGroup) -> str:
+    """
+    Pulls date from most recent game available in the feature store. It's used to fetch
+    recent games data and push it into the feature store using GitHub actions.
+
+    Args:
+        feature_group: FeatureGroup used to pull the data.
+
+    Returns:
+        recent_date: string with the date from the most recent game available in the
+            feature store. The format is yyyy-mm-dd.
+    """
+
+    # Pull data from feature store
+    dataframe = feature_group.read(online=True)
+
+    # Some processing
+    dataframe.sort_values(by="game_date", ascending=False, inplace=True)
+    dataframe.reset_index(drop=True, inplace=True)
+
+    recent_date = dataframe.loc[0, "game_date"]
+    del dataframe
+    recent_date = add_one_day(recent_date)
+
+    return recent_date

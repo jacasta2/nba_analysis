@@ -9,6 +9,7 @@ import json
 import streamlit as st
 from dotenv import load_dotenv
 
+
 class Config:
     """
     Hopsworks-related info.
