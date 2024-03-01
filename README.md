@@ -70,7 +70,7 @@ This script contains the functions to pull all available data from the feature s
 
 This script contains the code that automatically updates the feature store with new prepared games data. The code connects to the `Hopsworks` feature store, finds the most recent game available and pulls its date. Then, it connects to the `nba_api` to fetch games data from such date onward, prepares the data and pushes it into the feature store.[^2]
 
-[^2]: There's an additional related script named `fetch_data_github_action.py` that performs the same processes. However, it seems the NBA blocks connections triggered from GitHub actions, for which reason the script isn't used by the app. I make it available together with the GitHub Action workflow file in the folder **.github** for the sake of learning.
+[^2]: There's an additional related script named `fetch_data_github_action.py` that performs the same processes. However, it seems the NBA blocks connections triggered from GitHub Actions, for which reason the script isn't used by the app. I make it available together with the GitHub Action workflow file in the folder **.github** for the sake of learning.
 
 The script is run once every week using a cron job. The cron job uses a bash script named `fetch_data_cron.sh` stored in the folder **src**. The script navigates to the folder **src** using a function, activates the Poetry environment and runs the script. Please update the paths and the name of the Poetry environment accordingly.
 
