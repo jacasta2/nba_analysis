@@ -13,6 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 import statsmodels.api as sm
 import shap
+from utils import log_odds_to_prob, odds_to_prob
 
 
 def prepare_data(games_data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -59,8 +60,10 @@ def log_reg_results(
         X_train: pd.DataFrame with the predictors.
         y_train: pd.DataFrame with the games' result (1: win, 0: loss).
     Returns:
-        jokic: list with Jokic's assists coefficient and its p-value.
-        murray: list with Murray's points coefficient and its p-value.
+        jokic: list with Jokic's assists coefficient, probability equivalent and its
+            p-value.
+        murray: list with Murray's points coefficient, probability equivalent and its
+            p-value.
         diff_test: list with results from test evaluating differences between Jokic and
             Murray regression coefficients.
         fig: Figure bar plot of the regression coefficients.
@@ -76,13 +79,15 @@ def log_reg_results(
     # Extract the coefficients for the interpretation
     jokic_coeff = summary.loc["jokic_ast", "Coef."]
     jokic_assists = round((math.exp(jokic_coeff) - 1) * 100, 2)
+    jokic_prob = round(odds_to_prob(math.exp(jokic_coeff) - 1) * 100, 2)
     jokic_assists_p = round(summary.loc["jokic_ast", "P>|z|"], 2)
-    jokic = [jokic_assists, jokic_assists_p]
+    jokic = [jokic_assists, jokic_prob, jokic_assists_p]
 
     murray_coeff = summary.loc["murray_pts", "Coef."]
     murray_points = round((math.exp(murray_coeff) - 1) * 100, 2)
+    murray_prob = round(odds_to_prob(math.exp(murray_coeff) - 1) * 100, 2)
     murray_points_p = round(summary.loc["murray_pts", "P>|z|"], 2)
-    murray = [murray_points, murray_points_p]
+    murray = [murray_points, murray_prob, murray_points_p]
 
     # Extract additional information to test differences between Jokic and Murray
     # coefficients
@@ -119,7 +124,7 @@ def log_reg_results(
 
 def shap_values_results(
     x_train: pd.DataFrame, y_train: pd.DataFrame
-) -> tuple[np.ndarray, float, float]:
+) -> tuple[np.ndarray, float, float, float, float]:
     """
     This function computes the SHAP values of the games data and returns them together
     with the SHAP values of Jokic's assists and Murray's points.
@@ -130,7 +135,11 @@ def shap_values_results(
     Returns:
         shap_values: np.ndarray with SHAP values.
         jokic_shap_value: float with Jokic's assists SHAP value.
+        jokic_prob: float with the increased probability of winning a game associated
+            with Jokic's assists SHAP value.
         murray_shap_value: float with Murray's points SHAP value.
+        murray_prob: float with the increased probability of winning a game associated
+            with Murray's points SHAP value.
     """
 
     log_reg = LogisticRegression(max_iter=200)
@@ -141,9 +150,15 @@ def shap_values_results(
     # Bring the SHAP values to a DataFrame
     shap_values_df = pd.DataFrame(shap_values, columns=x_train.columns)
     jokic_shap_value = round(shap_values_df["jokic_ast"].abs().mean(), 2)
+    jokic_prob = round(
+        log_odds_to_prob(shap_values_df["jokic_ast"].abs().mean()) * 100, 2
+    )
     murray_shap_value = round(shap_values_df["murray_pts"].abs().mean(), 2)
+    murray_prob = round(
+        log_odds_to_prob(shap_values_df["murray_pts"].abs().mean()) * 100, 2
+    )
 
-    return shap_values, jokic_shap_value, murray_shap_value
+    return shap_values, jokic_shap_value, jokic_prob, murray_shap_value, murray_prob
 
 
 def shap_values_plot(shap_values: np.ndarray, x_train: pd.DataFrame):

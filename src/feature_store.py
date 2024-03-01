@@ -5,6 +5,8 @@ feature_store.py
 
 import hopsworks
 import pandas as pd
+from hsfs import connection
+from hsfs.connection import Connection
 from hsfs.feature_group import FeatureGroup
 from hsfs.feature_store import FeatureStore
 from hsfs.feature_view import FeatureView
@@ -136,7 +138,9 @@ def get_feature_store_data_r1(
     feature_group: FeatureGroup, season_init: int, season_end: int
 ) -> pd.DataFrame:
     """
-    Pulls data from the feature store.
+    Pulls data from the feature store. An update that simplifies reading from the
+    feature store makes this function unnecessary. I replace it with the function
+    get_feature_store_data_r2 below. I leave this function for the sake of learning.
 
     Args:
         feature_group: FeatureGroup used to pull the data.
@@ -165,39 +169,79 @@ def get_feature_store_data_r1(
     return dataframe
 
 
-def feature_group_connection_r1() -> FeatureGroup:
+def hopsworks_connection() -> tuple[Connection, str]:
     """
-    Connects to the feature store and returns a pointer to the feature group.
+    Connects to Hopsworks and returns a pointer to the connection and the name of the
+    feature group.
 
     Returns:
-        feature_group: FeatureGroup pointer to the feature group.
+        hsfs_connection: Connection pointer to Hopsworks.
+        feature_group_name: str that contains the name of the feature group.
     """
 
     my_config = Config()
     my_config.update_attributes_st()
 
-    feature_store = feature_store_connection(my_config)
+    feature_group_name = my_config.feature_group_name
 
-    feature_group = feature_store.get_or_create_feature_group(
-        name=my_config.feature_group_name,
+    # The hostname is sliced to prevent the protocol ('https://') from being included
+    # following Hopsworks guidelines
+    hsfs_connection = connection(
+        host=my_config.hostname[8:],
+        project=my_config.hopsworks_project_name,
+        api_key_value=my_config.hopsworks_api_key,
+    )
+
+    return hsfs_connection, feature_group_name
+
+
+def feature_group_connection_r1() -> tuple[Connection, FeatureGroup]:
+    """
+    Connects to the feature store and returns pointers to the Hopsworks connection and
+    the feature group.
+
+    Returns:
+        hsfs_connection: Connection pointer to Hopsworks.
+        feature_group: FeatureGroup pointer to the feature group.
+    """
+
+    # my_config = Config()
+    # my_config.update_attributes_st()
+
+    # feature_store = feature_store_connection(my_config)
+
+    # feature_group = feature_store.get_or_create_feature_group(
+    #     name=my_config.feature_group_name,
+    #     version=1,
+    #     description="Games data from Denver Nuggets",
+    #     primary_key=["game_id"],
+    #     online_enabled=True,
+    # )
+
+    hsfs_connection, fg_name = hopsworks_connection()
+    fs = hsfs_connection.get_feature_store()
+    feature_group = fs.get_or_create_feature_group(
+        name=fg_name,
         version=1,
         description="Games data from Denver Nuggets",
         primary_key=["game_id"],
         online_enabled=True,
     )
 
-    return feature_group
+    return hsfs_connection, feature_group
 
 
 def feature_group_connection_r2(params_list: list) -> FeatureGroup:
     """
     Connects to the feature store and returns a pointer to the feature group. This
-    connection is used to fetch recent games data and push it into the feature store
-    using GitHub actions.
+    connection is used to fetch recent games data and push it into the feature store.
+    This function is used by the GitHub actions workflow. However, it isn't used in the
+    app since the NBA seems to block connections from GitHub. I leave this function and
+    the workflow file .github/update_feature_store.yaml for the sake of learning.
 
     Args:
         params_list: list that contains the parameters needed to connect to the feature
-        store (Hopsworks API key, project name and feature group name).
+            store (Hopsworks API key, project name and feature group name).
 
     Returns:
         feature_group: FeatureGroup pointer to the feature group.
@@ -224,14 +268,15 @@ def feature_group_connection_r2(params_list: list) -> FeatureGroup:
 def get_date_most_recent_game_fs(feature_group: FeatureGroup) -> str:
     """
     Pulls date from most recent game available in the feature store. It's used to fetch
-    recent games data and push it into the feature store using GitHub actions.
+    recent games data and push it into the feature store using GitHub actions or a cron
+    job.
 
     Args:
         feature_group: FeatureGroup used to pull the data.
 
     Returns:
         recent_date: string with the date from the most recent game available in the
-            feature store. The format is yyyy-mm-dd.
+            feature store. The format is yyyy-mm-dd. It adds one day to the date.
     """
 
     # Pull data from feature store
@@ -246,3 +291,24 @@ def get_date_most_recent_game_fs(feature_group: FeatureGroup) -> str:
     recent_date = add_one_day(recent_date)
 
     return recent_date
+
+
+def get_feature_store_data_r2(feature_group: FeatureGroup) -> pd.DataFrame:
+    """
+    Pulls data from the Hopsworks feature store.
+
+    Args:
+        feature_group: FeatureGroup used to pull the data.
+
+    Returns:
+        dataframe: pd.DataFrame with data pulled from the feature store.
+    """
+
+    # Pull data from feature store
+    dataframe = feature_group.read(online=True)
+
+    # Some processing
+    dataframe.sort_values(by="game_date", ascending=False, inplace=True)
+    dataframe.reset_index(drop=True, inplace=True)
+
+    return dataframe

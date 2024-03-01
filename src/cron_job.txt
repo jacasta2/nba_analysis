@@ -1,0 +1,1 @@
+0 12 * * 4 /mnt/c/Users/USER/DS_Projects/nba_analysis/src/fetch_data_cron.sh >> /mnt/c/Users/USER/DS_Projects/nba_analysis/logs/fetch_data_cron.log 2>&1

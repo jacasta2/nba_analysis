@@ -8,8 +8,14 @@ import time
 import hsfs
 import numpy as np
 import pandas as pd
+from streamlit.delta_generator import DeltaGenerator
 from nba_api.stats.endpoints import boxscoretraditionalv2, leaguegamefinder
-from feature_store import feature_group_connection_r1, get_feature_store_data_r1
+from feature_store import (
+    feature_group_connection_r1,
+    get_feature_store_data_r1,
+    get_feature_store_data_r2,
+)
+
 # from feature_store import (
 #     feature_view_connection,
 #     get_feature_store_data,
@@ -21,6 +27,10 @@ def pull_team_games(team_id: int, season_init: int, season_end: int) -> pd.DataF
     """
     This function returns all regular season and playoff games info from a given team
     and seasons.
+
+    An update that automatizes the process of fetching data from the nba_api and the
+    Hopsworks feature store makes this function unnecessary. I leave it for the sake of
+    learning.
 
     Args:
         team_id: int that contains the team id.
@@ -83,6 +93,10 @@ def append_players_stats_season(
     three main stats (points, rebounds and assists) from a given set of its players.
     The function also appends info on whether the players were starters in the games.
     This function is called within another function that loops through seasons.
+
+    An update that automatizes the process of fetching data from the nba_api and the
+    Hopsworks feature store makes this function unnecessary. I leave it for the sake of
+    learning.
 
     Args:
         players_list: list that contains the players' ids.
@@ -191,6 +205,10 @@ def append_players_stats(players_list: list, team_games: pd.DataFrame) -> pd.Dat
     function's main purpose is controlling the append season by season since the actual
     append operation is performed by a function call.
 
+    An update that automatizes the process of fetching data from the nba_api and the
+    Hopsworks feature store makes this function unnecessary. I leave it for the sake of
+    learning.
+
     Args:
         players_list: list that contains the players' ids.
         team_games: pd.DataFrame that contains the team's games data.
@@ -235,6 +253,10 @@ def teammates_stats(team_games: pd.DataFrame) -> pd.DataFrame:
     column's name is 'NAME_PTS'. Thus, the function pulls all columns whose names
     contain '_PTS', adds these points up and substracts them from the whole team points.
 
+    An update that automatizes the process of fetching data from the nba_api and the
+    Hopsworks feature store makes this function unnecessary. I leave it for the sake of
+    learning.
+
     Args:
         team_games: pd.DataFrame that contains the team's games data.
 
@@ -275,6 +297,10 @@ def stats_to_int(team_games: pd.DataFrame) -> pd.DataFrame:
     This function converts the stats columns from (i) the players whose stats were
     appended to the games data and (ii) the rest of their teammates to 'int'.
 
+    An update that automatizes the process of fetching data from the nba_api and the
+    Hopsworks feature store makes this function unnecessary. I leave it for the sake of
+    learning.
+
     Args:
         team_games: pd.DataFrame that contains the team's games data.
 
@@ -296,6 +322,10 @@ def stats_to_int(team_games: pd.DataFrame) -> pd.DataFrame:
 def final_preparation(team_games: pd.DataFrame) -> pd.DataFrame:
     """
     This function performs some final processing steps to the DataFrame games.
+
+    An update that automatizes the process of fetching data from the nba_api and the
+    Hopsworks feature store makes this function unnecessary. I leave it for the sake of
+    learning.
 
     Args:
         team_games: pd.DataFrame that contains the team's games data.
@@ -329,6 +359,10 @@ def pull_data(
     """
     This function returns all regular season and playoff games info from a given team
     and seasons together with its main player stats.
+
+    An update that automatizes the process of fetching data from the nba_api and the
+    Hopsworks feature store makes this function unnecessary. I leave it for the sake of
+    learning.
 
     Args:
         team_id: int that contains the team id.
@@ -394,9 +428,7 @@ def pull_data(
         #     feature_view=feature_view, game_id_list=game_id_list, columns=columns
         # )
         feature_store_data = get_feature_store_data_r1(
-            feature_group=feature_group,
-            season_init=season_init,
-            season_end=season_end
+            feature_group=feature_group, season_init=season_init, season_end=season_end
         )
 
         # Extract the seasons (e.g., 2016, 2017, etc.) from the feature store data
@@ -480,7 +512,7 @@ def pull_data(
         return feature_store_data, feature_store_data.shape[0], 0
 
 
-def pull_games_starters(team_games: pd.DataFrame) -> pd.DataFrame:
+def pull_games_starters(team_games: pd.DataFrame, date_range: tuple) -> pd.DataFrame:
     """
     This function filters the games data to extract only those games where the players
     whose stats were appended were starters. It takes advantage of the name codification
@@ -493,11 +525,18 @@ def pull_games_starters(team_games: pd.DataFrame) -> pd.DataFrame:
 
     Args:
         team_games: pd.DataFrame that contains the team's games data.
+        date_range: tuple that contains the selected start and end date of the games
+            data to run the analysis.
 
     Returns:
         filtered_team_games: pd.DataFrame that contains the team's games data from games
             where the players whose stats were appended were starters.
     """
+
+    team_games = team_games[
+        (team_games["game_date"] >= date_range[0])
+        & (team_games["game_date"] <= date_range[1])
+    ].copy()
 
     # Pull starters info
     cols = [col for col in team_games.columns if "_starter" in col]
@@ -515,3 +554,33 @@ def pull_games_starters(team_games: pd.DataFrame) -> pd.DataFrame:
     filtered_team_games.reset_index(drop=True, inplace=True)
 
     return filtered_team_games
+
+
+def pull_games_feature_store(
+    status_message: DeltaGenerator,
+) -> tuple[pd.DataFrame, int]:
+    """
+    This function pulls the games data from the Hopsworks feature store.
+
+    Args:
+        status_message: DeltaGenerator that contains informative messages about the
+            process.
+
+    Returns:
+        pd.DataFrame that contains the games data.
+        int that contains the number of rows (games) in the feature store.
+    """
+
+    status_message.text("Connecting to Hopsworks...")
+    hsfs_connection, feature_group = feature_group_connection_r1()
+    status_message.text("Connected to Hopsworks! Pulling data...")
+
+    games = get_feature_store_data_r2(feature_group=feature_group)
+    status_message.text("Data pulled from the feature store!")
+    time.sleep(1)
+
+    hsfs_connection.close()
+    status_message.text("Hopsworks connection closed!")
+    time.sleep(1)
+
+    return games, games.shape[0]
