@@ -2,6 +2,7 @@ name: Update Feature Store
 
 on:
   schedule:
+    # Every Thursday at 20:42 UTC (for testing purposes)
     - cron: '42 20 * * 4'
 
 jobs:
