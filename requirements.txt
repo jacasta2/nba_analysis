@@ -1,4 +1,3 @@
-ipykernel --group dev
 pandas==2.0.3
 numpy
 nptyping
