@@ -76,19 +76,25 @@ The script is run once every week using a cron job. The cron job uses a bash scr
 
 The cron job is scheduled to run at 12:00 every Thursday and creates a log in the folder **logs**. The file `cron_job.txt` in the folder **src** contains the cron job configuration. Please update the paths accordingly and then copy and paste the content in `crontab`.
 
-To make sure the job runs automatically, I configured my computer to start the cron service at startup. To achieve this, I first needed to prevent WSL to ask for a password to start the cron service. This requires to modify the file `etc/sudoers`. Start your WSL terminal and open the sudoers file with the following command:
+To make sure the job runs automatically, I configured my computer to start the cron service at startup. To achieve this, I first needed to prevent WSL to ask for a password to start the cron service. This requires to modify the file `etc/sudoers` as follows:
+
+#### On WSL
+
+Start your WSL terminal and open the file `etc/sudoers` with the following command:
 
 ```bash
 sudo visudo
 ```
 
-Add the following line:
+Once open, add the following line at the end of the file:
 
 ```vim
 %sudo ALL=NOPASSWD: /usr/sbin/service cron start
 ```
 
-Then, in Windows, I created a `.bat` file with the following content:
+#### On Windows
+
+Then, on Windows, I created a `.bat` file with the following content:
 
 ```bat
 wsl sudo service cron start
