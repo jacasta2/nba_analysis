@@ -30,4 +30,4 @@ jobs:
 
     - name: Fetch and Prepare Data
       run: |
-        python src/fetch_data.py
+        python src/fetch_data_github_action.py
