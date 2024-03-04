@@ -13,7 +13,7 @@ The app is available at [nba-analysis-jaime.streamlit.app](https://nba-analysis-
 
 ## Getting started
 
-To reproduce the project locally, make sure to install Python and the project requirements. The project was developed using Poetry version 1.7.1. Make sure to create a Poetry environment using the requirements listed in the file `requirements.txt`. This requires to:
+To reproduce the project locally, make sure to install Python and the project requirements. The project was developed in a Poetry environment (Poetry 1.7.1) in a Ubuntu terminal environment (Ubuntu 22.04.4 LTS) on Windows with Windows Subsystem for Linux (WSL). Make sure to create a Poetry environment using the requirements listed in the file `requirements.txt`. This requires to:
 
 First, initialize Poetry within the project's root folder:
 
@@ -76,19 +76,19 @@ The script is run once every week using a cron job. The cron job uses a bash scr
 
 The cron job is scheduled to run at 12:00 every Thursday and creates a log in the folder **logs**. The file `cron_job.txt` in the folder **src** contains the cron job configuration. Please update the paths accordingly and then copy and paste the content in `crontab`.
 
-To make sure the job runs automatically, I configured my computer to start the cron service at startup. To achieve this, I first needed to prevent WSL to ask for a password to start the cron service. This requires to modify the file `etc/sudoers`. Open this file with the following command:
+To make sure the job runs automatically, I configured my computer to start the cron service at startup. To achieve this, I first needed to prevent WSL to ask for a password to start the cron service. This requires to modify the file `etc/sudoers`. Start your WSL terminal and open the sudoers file with the following command:
 
 ```bash
 sudo visudo
 ```
 
-And add the following line:
+Add the following line:
 
 ```vim
 %sudo ALL=NOPASSWD: /usr/sbin/service cron start
 ```
 
-Then, in Windows, I created a `.bat` file with the following command:
+Then, in Windows, I created a `.bat` file with the following content:
 
 ```bat
 wsl sudo service cron start
@@ -96,7 +96,7 @@ wsl sudo service cron start
 
 Finally, I moved this file to the Windows startup directory. You can open this directory by executing `shell:startup` in Windows Run (open Windows Run by pressing the Windows key + R).[^3]
 
-[^3]: Please note that the steps needed to configure the cron job might change depending on your system. I work with WSL and after trying out a couple of methods, I found that the one described worked well and was relatively simple to implement.
+[^3]: Please note that the steps needed to configure the cron job might change depending on your system (recall that I work in a Ubuntu terminal environment (Ubuntu 22.04.4 LTS) on Windows with WSL).
 
 ### feature_store.py
 
