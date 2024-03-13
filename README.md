@@ -13,7 +13,7 @@ The app is available at [nba-analysis-jaime.streamlit.app](https://nba-analysis-
 
 ## Getting started
 
-To reproduce the project locally, make sure to install Python and the project requirements. The project was developed in a Poetry environment (Poetry 1.7.1) in a Ubuntu terminal environment (Ubuntu 22.04.4 LTS) on Windows with Windows Subsystem for Linux (WSL). Make sure to create a Poetry environment using the requirements listed in the file `requirements.txt`. This requires to:
+To reproduce the project locally, make sure to install Python and the project requirements. The project was developed in a Poetry environment (Poetry 1.7.1) in a Ubuntu terminal environment (Ubuntu 22.04.4 LTS) on Windows with Windows Subsystem for Linux (WSL). Make sure to create a Poetry environment and install the project dependencies. This requires to:
 
 First, initialize Poetry within the project's root folder:
 
@@ -21,17 +21,21 @@ First, initialize Poetry within the project's root folder:
 poetry init
 ```
 
-And, then, install the requirements:[^1]
+And, then, install the dependencies:[^1]
 
 ```bash
-poetry add `cat requirements.txt`
+poetry install
 ```
+
+Running `install` when the file `poetry.lock` is present resolves and installs all dependencies listed in the file `pyproject.toml`, and Poetry uses the versions listed in the file `poetry.lock` to ensure that the dependencies are consistent for everyone working on a project.[^2] For more details about installing dependencies with Poetry, please visit [Installing dependencies](https://python-poetry.org/docs/basic-usage/#installing-dependencies) from Poetry's official documentation website.
 
 [^1]: I had an issue during the requirements installation that wasn't related to the dependency resolver. The installation of one particular dependency, `twofish`, was raising an error related to a file named `Python.h` that wasn't found. [Borislav Hadzhiev's website](https://bobbyhadz.com/blog/python-fatal-error-python-h-no-such-file-or-directory) provides a solution.
 
+[^2]: This repo provides both files: `pyproject.toml` and `poetry.lock`.
+
 ## Scripts
 
-The app works with six Python scripts stored in the folder **src**.
+The app works with seven Python scripts stored in the folder **src**.
 
 ### streamlit_app.py
 
@@ -68,9 +72,9 @@ This script contains the functions to pull all available data from the feature s
 
 ### fetch_data_cron.py
 
-This script contains the code that automatically updates the feature store with new prepared games data. The code connects to the `Hopsworks` feature store, finds the most recent game available and pulls its date. Then, it connects to the `nba_api` to fetch games data from such date onward, prepares the data and pushes it into the feature store.[^2]
+This script contains the code that automatically updates the feature store with new prepared games data. The code connects to the `Hopsworks` feature store, finds the most recent game available and pulls its date. Then, it connects to the `nba_api` to fetch games data from such date onward, prepares the data and pushes it into the feature store.[^3]
 
-[^2]: There's an additional related script named `fetch_data_github_action.py` that performs the same processes. However, it seems the NBA blocks connections triggered from GitHub Actions, for which reason the script isn't used by the app. I make it available together with the GitHub Action workflow file in the folder **.github** for the sake of learning.
+[^3]: There's an additional related script named `fetch_data_github_action.py` that performs the same processes. However, it seems the NBA blocks connections triggered from GitHub Actions, for which reason the script isn't used by the app. I make it available together with the GitHub Action workflow file in the folder **.github** for the sake of learning.
 
 The script is run once every week using a cron job. The cron job uses a bash script named `fetch_data_cron.sh` stored in the folder **src**. The script navigates to the folder **src** using a function, activates the Poetry environment and runs the script. Please update the paths and the name of the Poetry environment accordingly.
 
@@ -100,9 +104,9 @@ Then, on Windows, I created a `.bat` file with the following content:
 wsl sudo service cron start
 ```
 
-Finally, I moved this file to the Windows startup directory. You can open this directory by executing `shell:startup` in Windows Run (open Windows Run by pressing the Windows key + R).[^3]
+Finally, I moved this file to the Windows startup directory. You can open this directory by executing `shell:startup` in Windows Run (open Windows Run by pressing the Windows key + R).[^4]
 
-[^3]: Please note that the steps needed to configure the cron job might change depending on your system (recall that I work in a Ubuntu terminal environment (Ubuntu 22.04.4 LTS) on Windows with WSL).
+[^4]: Please note that the steps needed to configure the cron job might change depending on your system (recall that I work in a Ubuntu terminal environment (Ubuntu 22.04.4 LTS) on Windows with WSL).
 
 ### feature_store.py
 
@@ -112,7 +116,7 @@ This script contains supporting functions used by `data.py` and `fetch_data_cron
 
 This script contains code that loads supporting credential data used by `feature_store.py` to connect to the `Hopsworks` feature store. While the script provides three different ways to load such data, the app only uses the one that relies on Streamlit Secrets Management (SSM). However, I leave all three for the sake of completeness and learning.
 
-When using SSM, you need to create (i) a folder named `.streamlit` in the folder **src** and (ii) a file inside `.streamlit` named `secrets.toml` with the following data:[^4]
+When using SSM, you need to create (i) a folder named `.streamlit` in the folder **src** and (ii) a file inside `.streamlit` named `secrets.toml` with the following data:[^5]
 
 ```toml
 HOSTNAME = "HOSTNAME"
@@ -122,7 +126,7 @@ FEATURE_GROUP_NAME = "FEATURE_GROUP_NAME"
 FEATURE_VIEW_NAME = "FEATURE_VIEW_NAME"
 ```
 
-[^4]: When implementing your own app, please make sure to replace the placeholders accordingly. This also applies for the other two ways of loading the supporting credential data. Please also note that only the first parameter (`HOSTNAME`) is provided by Hopsworks; the remaining four are configured by the user.
+[^5]: When implementing your own app, please make sure to replace the placeholders accordingly. This also applies for the other two ways of loading the supporting credential data. Please also note that only the first parameter (`HOSTNAME`) is provided by Hopsworks; the remaining four are configured by the user.
 
 This file is used during local development. When deploying the app, you need to define these variables as environment variables in your app's **Advanced settings...** Please check [SSM's documentation](https://docs.streamlit.io/streamlit-community-cloud/deploy-your-app/secrets-management) for an overview.
 
@@ -153,6 +157,10 @@ Regardless of the way of loading the supporting credential data, please bear in 
 ### modeling.py
 
 This script contains the code that fits the logistic regression model to the games data and computes the SHAP values.
+
+### utils.py
+
+This script contains supporting functions used by `feature_store.py` and `modeling.py` to update the feature store and interpret the results, respectively.
 
 ## Credits
 
