@@ -27,7 +27,7 @@ And, then, install the dependencies:[^1]
 poetry install
 ```
 
-Running `install` when the file `poetry.lock` is present resolves and installs all dependencies listed in the file `pyproject.toml`, and Poetry uses the versions listed in the file `poetry.lock` to ensure that the dependencies are consistent for everyone working on a project.[^2] For more details about installing dependencies with Poetry, please visit [Installing dependencies](https://python-poetry.org/docs/basic-usage/#installing-dependencies) from Poetry's official documentation website. Note that a requirements file isn't necessary. Moreover, with no requirements file present, Streamlit will install the dependencies from these Poetry files.
+Running `install` when the file `poetry.lock` is present resolves and installs all dependencies listed in the file `pyproject.toml`, and Poetry uses the versions listed in the file `poetry.lock` to ensure that the dependencies are consistent for everyone working on a project.[^2] For more details about installing dependencies with Poetry, please visit [Installing dependencies](https://python-poetry.org/docs/basic-usage/#installing-dependencies) from Poetry's official documentation website. Note that a requirements file isn't necessary. Moreover, with no requirements file present, Streamlit will install the dependencies using the info from the file `pyproject.toml`.
 
 [^1]: I had an issue during the requirements installation that wasn't related to the dependency resolver. The installation of one particular dependency, `twofish`, was raising an error related to a file named `Python.h` that wasn't found. [Borislav Hadzhiev's website](https://bobbyhadz.com/blog/python-fatal-error-python-h-no-such-file-or-directory) provides a solution.
 
