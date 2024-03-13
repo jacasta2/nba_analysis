@@ -220,7 +220,7 @@ else:
 
                 MESSAGE_1 = (
                     "A 1-standard deviation increase in Murray's points increases the "
-                    + "the odds of winning by "
+                    + "odds of winning by "
                     + str(murray[0])
                     + "%. This is a "
                     + str(murray[1])
