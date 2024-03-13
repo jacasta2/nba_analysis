@@ -23,6 +23,10 @@ jinja2 = "3.0.3"
 ipywidgets = "^8.1.2"
 streamlit = "^1.32.1"
 python-dotenv = "^1.0.1"
+certifi = "2023.7.22"
+markupsafe = "2.0"
+altair = "4"
+urllib3 = "1.26"
 
 
 [tool.poetry.group.dev.dependencies]
